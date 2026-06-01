@@ -1,4 +1,4 @@
-# DoLLM Minimal Open
+# DoLLM
 
 - **SYN** and **UDP** datasets (bundled toy splits under `toy_datasets/`)
 - **In-domain** training and evaluation
