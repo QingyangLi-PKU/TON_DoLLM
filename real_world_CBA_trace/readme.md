@@ -1,0 +1,3 @@
+We have released the CBA flow traces used for the analysis in the Motivation section. To prevent privacy leakage, we anonymized both the source IP addresses and destination IP addresses involved in the attacks by replacing them through a one-to-one mapping.
+
+Upon acceptance of the paper, we will make efforts to publicly release additional real-world CBA traces to support future research and reproducibility.
