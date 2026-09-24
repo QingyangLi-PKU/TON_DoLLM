@@ -1,7 +1,7 @@
 ## Repository layout
 
 ```text
-DoLLM_minimal_open/
+TON_DoLLM/
 ├── src/                         # DoLLM implementation
 │   ├── data.py                  # flow preprocessing and FS construction
 │   ├── defaults.py              # experiment hyperparameters
@@ -20,7 +20,7 @@ DoLLM_minimal_open/
 
 ```bash
 git clone <repository-url>
-cd DoLLM_minimal_open
+cd TON_DoLLM
 conda create -n dollm -c pytorch -c conda-forge --file requirements.txt -y
 conda activate dollm
 ```
