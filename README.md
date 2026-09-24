@@ -1,84 +1,67 @@
-# DoLLM
+## Repository layout
 
-- **SYN** and **UDP** datasets (bundled toy splits under `toy_datasets/`)
-- **In-domain** training and evaluation
-- **Zero-shot** cross-dataset evaluation (`SYN → UDP`, `UDP → SYN`)
-- Consistent naming: the evaluation split is called 
-
-## Install
-
-```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+```text
+DoLLM_minimal_open/
+├── src/                         # DoLLM implementation
+│   ├── data.py                  # flow preprocessing and FS construction
+│   ├── defaults.py              # experiment hyperparameters
+│   ├── model.py                 # DoLLM model
+│   └── train_eval.py            # training and evaluation routines
+├── scripts/
+│   └── run_experiments.py       # one-command experiment entry point
+├── toy_datasets/
+│   ├── Syn/
+│   └── UDP/                    
+├── requirements.txt
+└── README.md
 ```
 
-Use a local LMs checkpoint if available (recommended):
+## Installation
 
 ```bash
-export DOLLM_MODEL=/mnt/ssd1/model_zoo/roberta-base
+git clone <repository-url>
+cd DoLLM_minimal_open
+conda create -n dollm -c pytorch -c conda-forge --file requirements.txt -y
+conda activate dollm
 ```
 
-## Bundled SYN / UDP datasets
-
-Bundled CSVs live in `toy_datasets/Syn` and `toy_datasets/UDP`. The copy script uses the full source CSV splits by default and does not change the original DoLLM hyperparameters. Each folder contains:
-
-| File | Role |
-|------|------|
-| `mixed_flows_train.csv` | Training |
-| `mixed_flows_valid.csv` | Validation (model selection) |
-| `mixed_flows_current_detection_batch.csv` | Held-out current detection batch |
+By default, experiments use the local LM checkpoint
+`/mnt/ssd1/model_zoo/roberta-base`. Supply `--model-name-or-path` to use a
+different local checkpoint or a Hugging Face model identifier.
 
 
-## In-domain train + evaluate
+## One-command reproduction
 
-Train on SYN and evaluate on its **current_detection_batch**:
+Run the following command without any arguments:
 
 ```bash
-PYTHONPATH=src python scripts/train.py \
-  --dataset-dir toy_datasets/Syn \
-  --model-name-or-path "$DOLLM_MODEL" \
-  --output-dir outputs/syn_in_domain \
-  --seed 42
+python scripts/run_experiments.py
 ```
 
-Outputs:
+It runs all bundled results with the default seed `42`:
 
-- `outputs/syn_in_domain/best_model.pt`
-- `outputs/syn_in_domain/in_domain_metrics.npy`
+- Syn in-domain evaluation.
+- UDP in-domain evaluation.
+- `Syn -> UDP` — zeroshot.
+- `UDP -> Syn` — zeroshot.
 
-## Zero-shot (SYN ↔ UDP)
+Results are written to `outputs/experiments/`:
+
+To run the complete suite with multiple seeds, for example:
 
 ```bash
-PYTHONPATH=src python scripts/evaluate_zero_shot.py \
-  --syn-dir toy_datasets/Syn \
-  --udp-dir toy_datasets/UDP \
-  --model-name-or-path "$DOLLM_MODEL" \
-  --output-dir outputs/syn_udp_zero_shot \
-  --seeds 42
+python scripts/run_experiments.py --seeds 42 123 456
 ```
 
-Results:
+## Default experiment settings
 
-- `zero_shot_results.csv` — per seed / source / target
-- `zero_shot_summary.csv` — mean/std over zero-shot cells
-
-| `setting` | Meaning |
-|-----------|---------|
-| `in_domain` | `source_dataset == target_dataset` |
-| `zero_shot` | `source_dataset != target_dataset` |
-
-## Default hyperparameters
-
-| Parameter | Default |
-|-----------|---------|
-| `batch_size` | `64` |
-| `num_workers` | `4` |
-| `binning_num` / `num_flows` | `64` |
-| `num_training_samples` | `15000` |
-| `num_epochs` | `20` |
-| `learning_rate` | `1e-4` |
-| `seeds` | `42` |
-| zero-shot model | `/mnt/ssd1/model_zoo/roberta-base` |
-| single-train model | `/mnt/ssd1/model_zoo/roberta-base` |
-
+| Parameter | Value |
+|---|---:|
+| Backbone | frozen `roberta-base` |
+| Flow sequence length | 64 |
+| Training FS samples | 15,000 |
+| Batch size | 64 |
+| Epochs | 20 |
+| Learning rate | 1e-4 |
+| Loss | focal loss (`alpha=0.25`, `gamma=2`) |
+| Default seed | 42 |
